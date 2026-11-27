@@ -8,7 +8,17 @@ from openai import OpenAI
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+
+"https://ai-resume-analyser-2-qxbn.onrender.com"  
+          ]
+        }
+    }
+)
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 def extract_text(file):
