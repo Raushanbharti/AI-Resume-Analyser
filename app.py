@@ -18,14 +18,7 @@ from openai import OpenAI
 load_dotenv()
 
 app = Flask(__name__)
-# Allow your deployed frontend to access backend APIs
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "https://ai-resume-analyser-2-qxbn.onrender.com"
-        ]
-    }
-})
+
 @app.route("/", methods=["GET"])
 def home():
     return {
@@ -46,7 +39,7 @@ FRONTEND_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
-#CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
+CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
 
 # Optional overrides for non-standard server installations.
 if os.getenv("TESSERACT_CMD"):
