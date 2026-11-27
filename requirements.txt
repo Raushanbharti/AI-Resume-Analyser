@@ -1,9 +1,7 @@
-
+gunicorn
 flask
 flask-cors
 python-dotenv
 openai
 PyPDF2
 python-docx
-gunicorn
-
