@@ -26,16 +26,40 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 
 def extract_text(file):
     name = file.filename.lower()
+
     if name.endswith(".pdf"):
-        reader = PdfReader(file)
-        return "\n".join(page.extract_text() or "" for page in reader.pages)
-    if name.endswith(".docx"):
+        pdf_bytes = file.read()
+        reader = PdfReader(BytesIO(pdf_bytes))
+
+        extracted = [
+            page.extract_text() or ""
+            for page in reader.pages
+        ]
+
+        if any(not text.strip() for text in extracted):
+            images = convert_from_bytes(pdf_bytes, dpi=250)
+
+            for i, text in enumerate(extracted):
+                if not text.strip():
+                    extracted[i] = pytesseract.image_to_string(images[i])
+
+        result = "\n".join(extracted)
+
+        if not result.strip():
+            raise ValueError("Could not extract text from PDF.")
+
+        return result
+
+    elif name.endswith(".docx"):
         doc = Document(file)
         chunks = [p.text for p in doc.paragraphs if p.text.strip()]
+
         for table in doc.tables:
             for row in table.rows:
                 chunks.append(" | ".join(cell.text for cell in row.cells))
+
         return "\n".join(chunks)
+
     raise ValueError("Please upload a PDF or DOCX file.")
 
 @app.get("/api/health")
