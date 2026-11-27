@@ -3,12 +3,13 @@ import {createRoot} from 'react-dom/client';
 import {Upload, Sparkles, FileText, Gauge, CheckCircle2, AlertCircle, ArrowUpRight, Sun, Moon, BriefcaseBusiness, BrainCircuit, MessageSquare, Target, WandSparkles, LoaderCircle, X, ChevronRight} from 'lucide-react';
 import './style.css';
 
-const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/analyze`;
+const API_BASE = (import.meta.env.VITE_API_URL || 'https://resume-analyzer-1-s2sy.onrender.com').replace(/\/+$/, '');
+const API = `${API_BASE}/api/analyze`;
 function App(){
  const [dark,setDark]=useState(true), [file,setFile]=useState(null), [jd,setJd]=useState(''), [data,setData]=useState(null), [busy,setBusy]=useState(false), [error,setError]=useState(''), [tab,setTab]=useState('overview');
  const theme=dark?'dark':'light';
- const choose=(f)=>{if(f && /\.(pdf|docx)$/i.test(f.name)){setFile(f);setError('');setData(null)}else setError('Choose a PDF or DOCX resume.')};
- async function analyze(){if(!file){setError('Upload your resume to get started.');return}setBusy(true);setError('');setData(null);try{const form=new FormData();form.append('resume',file);form.append('job_description',jd);const res=await fetch(API,{method:'POST',body:form});const json=await res.json();if(!res.ok)throw new Error(json.error||'Could not analyze resume');setData(json);setTab('overview')}catch(e){setError(e.message)}finally{setBusy(false)}}
+ const choose=(f)=>{if(f && /\.(pdf|docx)$/i.test(f.name)){if(f.size>10*1024*1024){setError('File is larger than 10 MB. Please upload a smaller resume.');return}setFile(f);setError('');setData(null)}else if(f)setError('Choose a PDF or DOCX resume.')};
+ async function analyze(){if(!file){setError('Upload your resume to get started.');return}setBusy(true);setError('');setData(null);try{const form=new FormData();form.append('resume',file);form.append('job_description',jd);const res=await fetch(API,{method:'POST',body:form});let json;try{json=await res.json()}catch{throw new Error('The backend returned an unreadable response. Check the Render backend deployment and logs.')}if(!res.ok)throw new Error(json.error||'Could not analyze resume');setData(json);setTab('overview')}catch(e){setError(e.message)}finally{setBusy(false)}}
  const score=data?.score??0;
  const tabs=[['overview','Overview',Gauge],['strengths','Strengths',CheckCircle2],['improve','Improvements',WandSparkles],['interview','Interview prep',BrainCircuit],['coach','AI coach',MessageSquare]];
  return <div className={theme}>
@@ -29,7 +30,7 @@ function App(){
       <button className="analyze" onClick={analyze} disabled={busy||!file}>{busy?<><LoaderCircle className="spin" size={19}/> Analyzing your resume…</>:<><Sparkles size={18}/> Analyze my resume <ArrowUpRight size={18}/></>}</button>
       <div className="secure"><CheckCircle2 size={14}/> Your resume is processed for this analysis. Use your own API key on the server.</div>
     </section>
-    {data&&<section className="results"><div className="resultheader"><div><div className="eyebrow"><Sparkles size={14}/> YOUR REPORT</div><h2>Resume insights</h2></div><div className="scorebadge"><div className="scorebig">{score}<small>/100</small></div><span>ATS score</span></div></div>
+    {data&&<section className="results"><div className="resultheader"><div><div className="eyebrow"><Sparkles size={14}/> YOUR REPORT</div><h2>Resume insights</h2><p className="extractionmeta">File: {data.filename || file?.name} · Extracted using: {data.extraction_method || "Text extraction"}</p></div><div className="scorebadge"><div className="scorebig">{score}<small>/100</small></div><span>ATS score</span></div></div>
       <div className="tabs">{tabs.map(([id,label,Icon])=><button key={id} className={tab===id?'tab active':'tab'} onClick={()=>setTab(id)}><Icon size={16}/>{label}</button>)}</div>
       {tab==='overview'&&<><div className="scoregrid">{Object.entries(data.score_breakdown||{}).map(([k,v])=><div className="scorecard" key={k}><div className="scoretop"><span>{k.replace(/_/g,' ')}</span><b>{v}%</b></div><div className="progress"><div style={{width:v+'%'}}/></div></div>)}</div><div className="tworesults"><ResultList title="Top strengths" items={data.strengths}/><ResultList title="Focus areas" items={data.weaknesses}/></div></>}
       {tab==='strengths'&&<ResultList title="What works well" items={data.strengths}/>}
