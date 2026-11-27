@@ -18,6 +18,16 @@ from openai import OpenAI
 load_dotenv()
 
 app = Flask(__name__)
+@app.route("/", methods=["GET"])
+def home():
+    return {
+        "status": "success",
+        "message": "ResumeIQ AI Resume Analyzer Backend is running!",
+        "api_health": "/api/health",
+        "api_analyze": "/api/analyze",
+        "model": "gpt-4o-mini"
+    }, 200
+
 app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB
 
 FRONTEND_ORIGINS = [
