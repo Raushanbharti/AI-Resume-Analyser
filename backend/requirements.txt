@@ -1,1 +1,7 @@
-flask\nflask-cors\npython-dotenv\nopenai\nPyPDF2\npython-docx\ngunicorn
+flask
+flask-cors
+python-dotenv
+openai
+PyPDF2
+python-docx
+gunicorn
