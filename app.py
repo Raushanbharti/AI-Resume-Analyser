@@ -46,7 +46,7 @@ FRONTEND_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
-CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
+#CORS(app, resources={r"/api/*": {"origins": FRONTEND_ORIGINS}})
 
 # Optional overrides for non-standard server installations.
 if os.getenv("TESSERACT_CMD"):
